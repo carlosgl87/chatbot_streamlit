@@ -2,51 +2,42 @@ import openai
 import streamlit as st
 from streamlit_chat import message
 
-openai.api_key = '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'
+openai.api_key = st.secrets['pass']
 
-def ask(question):
-   response = openai.Completion.create(
-               model="text-davinci-003",
-               prompt=question,
-               temperature=0.7,
-               max_tokens=1024,
-               stop=["\\n"],
-               top_p=1,
-               frequency_penalty=0,
-               presence_penalty=0
-               )
+def generate_response(prompt):
+    completions = openai.Completion.create(
+        engine = "text-davinci-003",
+        prompt = prompt,
+        max_tokens = 1024,
+        n = 1,
+        stop = None,
+        temperature = 0.5,
+    )
+    message = completions.choices[0].text
+    return message
 
-   answer = response.choices[0].text
-   return answer
+st.title('chatbot')
 
-#set the page title
-st.set_page_config(page_title="AI Teaching Assistant Bot", layout="centered")
-# set the image caption
-st.image(image, caption='Teaching Assitant Bot', use_column_width=True)
-# page header
-st.title(f"Teaching Assitant Bot")
-# store interaction history
-#
+# Storing the chat
 if 'generated' not in st.session_state:
     st.session_state['generated'] = []
 
 if 'past' not in st.session_state:
     st.session_state['past'] = []
-#
 
 # We will get the user's input by calling the get_text function
 def get_text():
     input_text = st.text_input("You: ","Hello, how are you?", key="input")
     return input_text
-#
+
 user_input = get_text()
-#
+
 if user_input:
-    response = ask(user_input)
+    output = generate_response(user_input)
     # store the output 
     st.session_state.past.append(user_input)
-    st.session_state.generated.append(response)
-#
+    st.session_state.generated.append(output)
+
 if st.session_state['generated']:
     
     for i in range(len(st.session_state['generated'])-1, -1, -1):
